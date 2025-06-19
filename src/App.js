@@ -1,5 +1,7 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import "./App.css";
+import Board from "./components/Board";
+import Modal from "./components/Modal";
 
 const ROWS = 6;
 const COLS = 7;
@@ -68,7 +70,6 @@ function App() {
     winner: null,
   });
   const [animatingCell, setAnimatingCell] = useState(null);
-  const boardRef = useRef();
 
   function handleColumnClick(column) {
     if (animatingCell !== null || modal.show) return;
@@ -103,7 +104,7 @@ function App() {
     setPlayerTurn(playerTurn === RED_TURN ? YELLOW_TURN : RED_TURN);
   }
 
-  function handleMouseEnter(column) {
+  function handleHoverColumn(column) {
     setHoverColumn(column);
   }
 
@@ -115,73 +116,23 @@ function App() {
     setAnimatingCell(null);
   }
 
-  // Render board cells
-  const cells = [];
-  for (let row = 0; row < ROWS; row++) {
-    for (let col = 0; col < COLS; col++) {
-      const idx = row * COLS + col;
-      let piece = null;
-      if (pieces[idx] !== 0) {
-        piece = (
-          <div
-            className={"piece" + (animatingCell === idx ? " dropping" : "")}
-            data-placed="true"
-            data-player={pieces[idx]}
-            key={`piece-${idx}`}
-          />
-        );
-      } else if (animatingCell === idx) {
-        piece = (
-          <div
-            className="piece dropping"
-            data-placed="true"
-            data-player={playerTurn}
-            key={`piece-${idx}`}
-          />
-        );
-      } else if (hoverColumn === col && pieces[col] === 0 && row === 0) {
-        piece = (
-          <div
-            className="piece"
-            data-placed="false"
-            data-player={playerTurn}
-            key={`hover-piece-${idx}`}
-          />
-        );
-      }
-      cells.push(
-        <div
-          className="cell"
-          key={idx}
-          onMouseEnter={() => handleMouseEnter(col)}
-          onClick={() => handleColumnClick(col)}
-        >
-          {piece}
-        </div>
-      );
-    }
-  }
-
   return (
     <div>
       <h1>CONNECT 4</h1>
-      <div id="board">{cells}</div>
-      {modal.show && (
-        <div id="modal-container" style={{ display: "block" }}>
-          <div id="modal-content">
-            <h2>Game Over</h2>
-            <p
-              id="modal-message"
-              data-winner={modal.winner ? modal.winner : undefined}
-            >
-              {modal.message}
-            </p>
-            <button id="reset" onClick={handleReset}>
-              Play Again
-            </button>
-          </div>
-        </div>
-      )}
+      <Board
+        pieces={pieces}
+        animatingCell={animatingCell}
+        playerTurn={playerTurn}
+        hoverColumn={hoverColumn}
+        onCellClick={handleColumnClick}
+        onCellHover={handleHoverColumn}
+      />
+      <Modal
+        show={modal.show}
+        message={modal.message}
+        winner={modal.winner}
+        onReset={handleReset}
+      />
     </div>
   );
 }
